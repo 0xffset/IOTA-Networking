@@ -150,7 +150,8 @@ public:
             httplib::Client client(peer.c_str());
             auto res = client.Get("/tangle");
             if (res && res->status == 200) {
-                size_t length = res->get_header_value<size_t>("Content-Length").value_or(0);
+              /*  size_t length = res->get_header_value<size_t>("Content-Length").value_or(0);*/
+                size_t length = 0;
                 auto tangle = json::json::parse(res->body);
 
                 if (length > max_length && valid_tangle(tangle)) {
