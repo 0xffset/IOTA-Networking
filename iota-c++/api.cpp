@@ -2,13 +2,14 @@
 #include <vector>
 #include <unordered_set>
 #include "single_include/nlohmann/json.hpp"
-#include <cpphttplib/http_server.h>
-#include "tangle.h" // assuming Tangle class is implemented in a separate header file
+#include "./httplib.h"
+#include "tangle.cpp"
 
 using namespace std;
+
 using namespace httplib;
 
-using json = nlohmann::json;
+using jso_nlohmann = nlohmann::json;
 
 // Initialize the Blockchain
 Tangle tangle;
@@ -25,7 +26,7 @@ void new_transaction(const Request& req, Response& res) {
     resolve_conflicts();
 
     // begin transaction
-    json values = json::parse(req.body);
+    jso_nlohmann values = jso_nlohmann::parse(req.body);
 
     // Check that the required fields are in the POST data
     if (!values.contains("sender") || !values.contains("recipient") || !values.contains("amount")) {
@@ -37,23 +38,23 @@ void new_transaction(const Request& req, Response& res) {
     // Create a new Transaction
     int index = tangle.send_transaction(values);
 
-    json response = {{"message", "Transaction will be added to Block " + to_string(index)}};
+    jso_nlohmann response = {{"message", "Transaction will be added to Block " + to_string(index)}};
 
     // tell peers to update tangle
     for (const auto& peer : tangle.peers) {
-        auto response = client.Get((string("http://") + peer + "/peers/resolve").c_str());
+        auto response = Client((string("http://") + peer + "/peers/resolve").c_str());
     }
 
     res.set_content(response.dump(), "application/json");
 }
 
 void full_chain(const Request& req, Response& res) {
-    json response = {{"tangle", tangle.nodes}, {"length", tangle.nodes.size()}};
+    jso_nlohmann response = {{"tangle", tangle.nodes}, {"length", tangle.nodes.size()}};
     res.set_content(response.dump(), "application/json");
 }
 
 void register_nodes(const Request& req, Response& res) {
-    json values = json::parse(req.body);
+    jso_nlohmann values = jso_nlohmann::parse(req.body);
     auto peers = values["peers"];
 
     if (peers.is_null()) {
@@ -66,7 +67,7 @@ void register_nodes(const Request& req, Response& res) {
         tangle.register_peer(peer);
     }
 
-    json response = {{"message", "New peers have been added"}, {"total_nodes", tangle.peers}};
+    jso_nlohmann response = {{"message", "New peers have been added"}, {"total_nodes", tangle.peers}};
 
     res.set_content(response.dump(), "application/json");
 }
@@ -74,7 +75,7 @@ void register_nodes(const Request& req, Response& res) {
 void consensus(const Request& req, Response& res) {
     bool replaced = tangle.resolve_conflicts();
 
-    json response;
+    jso_nlohmann response;
     if (replaced) {
         response = {{"message", "Our chain was replaced"}, {"new_chain", tangle.nodes}};
     } else {
@@ -85,7 +86,7 @@ void consensus(const Request& req, Response& res) {
 }
 
 void list_peers(const Request& req, Response& res) {
-    json response = {{"know_peers", tangle.peers}};
+    jso_nlohmann response = {{"know_peers", tangle.peers}};
     res.set_content(response.dump(), "application/json");
 }
 

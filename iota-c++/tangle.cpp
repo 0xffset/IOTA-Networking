@@ -7,13 +7,13 @@
 #include <sstream>
 #include <random>
 #include <openssl/sha.h>
-#include <cpphttplib/http_client.h>
-#include <nlohmann/json.hpp>
+#include "./httplib.h"
+#include "single_include/nlohmann/json.hpp"
 
 namespace json = nlohmann;
 
 class Tangle {
-private:
+public:
     std::vector<json::json> nodes;
     std::set<std::string> peers;
 
