@@ -4,6 +4,7 @@ from textwrap import dedent
 from time import time
 from uuid import uuid4
 from tangle import Tangle
+from cryptographic import encrypt_file, decrypt_file
 from urllib.parse import urlparse
 import requests
 from flask import Flask, jsonify, request 

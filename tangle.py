@@ -87,6 +87,7 @@ class Tangle(object):
 			'timestamp': time(),
 			'data': data,
 			'proof': 0,
+			'file': '',
 			'previous_hashs': prev_hashes,
 			'previous_nodes': prev_nodes,
 			'next_nodes': [],
