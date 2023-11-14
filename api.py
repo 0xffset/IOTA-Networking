@@ -4,11 +4,11 @@ from textwrap import dedent
 from time import time
 from uuid import uuid4
 from tangle import Tangle
-from cryptographic import encrypt_file, decrypt_file
+from cryptographic import encrypt_file_asymetric, decrypt_file_asymetric, get_hash_file
 from urllib.parse import urlparse
 import requests
-from flask import Flask, jsonify, request 
-
+from flask import Flask, jsonify, request, render_template
+from forms import *
 
 app = Flask(__name__)
 node_identifier = str(uuid4()).replace('-','')
@@ -16,18 +16,55 @@ node_identifier = str(uuid4()).replace('-','')
 # Initialize the Blockchain
 tangle = Tangle()
 
+@app.route('/')
+def index():
+	return render_template('pages/index.html')
+
+@app.route('/about')
+def about():
+	return render_template('pages/about.html')
+	
+@app.route('/register')
+def register():
+	form = RegisterForm(request.form)
+	return render_template('forms/register.html', form=form)
+
+@app.route('/login')
+def login():
+    form = LoginForm(request.form)
+    return render_template('forms/login.html', form=form)
+
+@app.route('/forgot')
+def forgot():
+    form = ForgotForm(request.form)
+    return render_template('forms/forgot.html', form=form)
+
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
 	# update tangle
 	tangle.resolve_conflicts
 	# begin transaction
-	values = request.get_json()
+	values = {
+		'sender': request.form['sender'],
+		'recipient': request.form['recipient'],
+		'amount': request.form['amount'],
+		'file': request.files['file']
+	}
+	print(values)
 
 	# Check that the required fields are in the POST'ed data
-	required = ['sender', 'recipient', 'amount']
-	if not all(k in values for k in required):
+	required = ['sender', 'recipient', 'amount', 'file']
+	if  all(k in values.keys() for k in required) and not all(values.values()):
 		return 'Missing values', 400
 
+	# Encrypt the file sender
+	file = request.files['file'].read()
+	# Get the SHA-256 file signature 
+	encrypted_file_path = encrypt_file_asymetric(file)
+	sha256_signature = get_hash_file(encrypted_file_path)
+
+	values['signature'] = sha256_signature
+	values['file'] = encrypted_file_path
 
 	# Create a new Transaction
 	index = tangle.send_transaction(values)
@@ -36,6 +73,7 @@ def new_transaction():
 	# tell peers to update tangle
 	for peer in tangle.peers:
 		requests.get(f"http://{peer}/peers/resolve")
+
 	return jsonify(response), 201
 
 @app.route('/tangle', methods=['GET'])
