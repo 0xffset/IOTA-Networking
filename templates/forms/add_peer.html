@@ -1,0 +1,9 @@
+{% extends 'layouts/form.html' %}
+{% block title %}Agregar Nuevo Peer (Nodo){% endblock %}
+{% block content %}
+  <form method="post" class="form" accept="application/json" enctype="multipart/form-data">
+    <h3 class="form-heading">Nuevo Peer<a href="{{ url_for('index') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
+    {{ form.peers(class_ = 'form-control first-input', placeholder = 'Peers', required = true, autofocus = true) }}
+    <input type="submit" value="Enviar" class="btn btn-primary btn-lg btn-block">
+  </form>
+{% endblock %}

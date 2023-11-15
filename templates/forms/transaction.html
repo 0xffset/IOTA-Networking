@@ -1,0 +1,11 @@
+{% extends 'layouts/form.html' %}
+{% block title %}Nueva Transacción{% endblock %}
+{% block content %}
+  <form method="post" class="form" enctype="multipart/form-data">
+    <h3 class="form-heading">Nueva Transacción <a href="{{ url_for('index') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
+    {{ form.sender(class_ = 'form-control first-input', placeholder = 'Sender', required = true, autofocus = true) }}
+    {{ form.recipient(class_ = 'form-control', placeholder = 'Recipient', required = true) }}
+    {{ form.file(class_ ='form-control', required = true )}}
+    <input type="submit" value="Enviar" class="btn btn-primary btn-lg btn-block">
+  </form>
+{% endblock %}

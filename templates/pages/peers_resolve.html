@@ -1,0 +1,26 @@
+{% extends 'layouts/main.html' %}
+{% block title %}Ver Tangle{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <h1>Ver Tangle.</h1>
+  </div>
+  <p class="lead">Aquí se pueden ver los peers resolve de la red tangle.
+    <div id="tree">
+      {{ json_data }}
+    </div>
+  {% endblock %}
+
+  <script src="{{ url_for('static', filename='js/jquery-3.4.1.min.js') }}" type="text/javascript"></script>
+  <script src="{{ url_for('static', filename='bootstrap-3.3.7/js/bootstrap.min.js') }}" type="text/javascript"></script>
+  <script src="{{ url_for('static', filename='bootstrap-treeview/js/bootstrap-treeview.min.js') }}" type="text/javascript"></script>
+
+  <script>
+    $(function() {
+      var $label = $('<label>').text('JSON: ')
+      $("#tree").append($label)
+      $('#tree').treeview({
+        data: JSON.parse('{{ json_data|tojson }}')
+      })
+    })
+</script>

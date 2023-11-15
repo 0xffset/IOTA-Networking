@@ -1,16 +1,21 @@
-import hashlib
 import json
-from textwrap import dedent
-from time import time
 from uuid import uuid4
 from tangle import Tangle
-from cryptographic import encrypt_file_asymetric, decrypt_file_asymetric, get_hash_file
+from cryptographics import encrypt_file_asymmetric, decrypt_file_asymmetric, get_hash_file
 from urllib.parse import urlparse
 import requests
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, flash
+from flask_toastr import Toastr
 from forms import *
 
 app = Flask(__name__)
+app.secret_key = '9omdDUxxFM'
+app.config['SESSION_TYPE'] = 'filesystem'
+toastr = Toastr()
+# initialize toastr on the app within create_app()
+toastr.init_app(app)
+
+
 node_identifier = str(uuid4()).replace('-','')
 
 # Initialize the Blockchain
@@ -39,6 +44,13 @@ def forgot():
     form = ForgotForm(request.form)
     return render_template('forms/forgot.html', form=form)
 
+
+@app.route('/transactions/new', methods=['GET'])
+def transaction():
+	form = Transaction(request.form)
+	return render_template('forms/transaction.html', form=form)
+
+
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
 	# update tangle
@@ -47,20 +59,19 @@ def new_transaction():
 	values = {
 		'sender': request.form['sender'],
 		'recipient': request.form['recipient'],
-		'amount': request.form['amount'],
 		'file': request.files['file']
 	}
 	print(values)
 
 	# Check that the required fields are in the POST'ed data
-	required = ['sender', 'recipient', 'amount', 'file']
+	required = ['sender', 'recipient', 'file']
 	if  all(k in values.keys() for k in required) and not all(values.values()):
 		return 'Missing values', 400
 
 	# Encrypt the file sender
 	file = request.files['file'].read()
 	# Get the SHA-256 file signature 
-	encrypted_file_path = encrypt_file_asymetric(file)
+	encrypted_file_path = encrypt_file_asymmetric(file)
 	sha256_signature = get_hash_file(encrypted_file_path)
 
 	values['signature'] = sha256_signature
@@ -73,8 +84,8 @@ def new_transaction():
 	# tell peers to update tangle
 	for peer in tangle.peers:
 		requests.get(f"http://{peer}/peers/resolve")
-
-	return jsonify(response), 201
+	flash("La nueva transacción fue agregada satisfactoriamente al a red tangle.", 'success')
+	return render_template('pages/index.html')
 
 @app.route('/tangle', methods=['GET'])
 def full_chain():
@@ -82,35 +93,45 @@ def full_chain():
 		'tangle': tangle.nodes,
 		'length': len(tangle.nodes)
 	}
-	return jsonify(response), 200
+	print(response)
+	return render_template('pages/tangle.html', json_data=response)
+	#return jsonify(response), 200
 
+@app.route('/peers/add', methods=['POST', 'GET'])
+def add_peers():
+    if request.method == 'POST':
+        values = request.form['peers']
+        print(values)
+        peers = None
+        if  values == "":
+           # print(json.loads(values))
+           # peers = json.parse(values)['peers']
+           peers = request.form['peers']
+        else:
+            peers = request.form['peers']
+            if peers is None:
+                flash("Error: Please supply a valid list of nodes", 'Error')
+                return "Error: Please supply a valid list of nodes", 400
+            tangle.register_peer(peers)
+            response = {
+				'message': 'New peers have been added',
+				'total_nodes': list(tangle.peers)
+			}
+            flash("El nuevo peer fue agregado satisfactoriamente al a red tangle.", 'Enhorabuena!')
+            return render_template('pages/peers.html', json_data=response['total_nodes']), 200
+        flash("El peer no fue agregado", 'Error!')
+        return render_template('pages/index.html'), 301
+    
+    elif request.method == 'GET':
+        form = Peers(request.form)
+        return render_template('forms/add_peer.html', form=form)
+    else:
+        return render_template('pages/index.html')
+    
 
-
-# Consesus
-@app.route('/peers/register', methods=['POST'])
-def register_nodes():
-	values = request.get_json()
-	peers = None
-	if type("") == type(values):
-		print(json.loads(values))
-		peers = json.loads(values)['peers']
-	else:
-		peers = values.get('peers')
-	if peers is None:
-		return "Error: Please supply a valid list of nodes", 400
-
-	for peer in peers:
-		tangle.register_peer(peer)
-
-	response = {
-		'message': 'New peers have been added',
-		'total_nodes': list(tangle.peers)
-	}
-
-	return jsonify(response), 201
 
 @app.route('/peers/resolve', methods=['GET'])
-def consensus():
+def get_peers_resolve():
 	replaced = tangle.resolve_conflicts()
 
 	if replaced:
@@ -123,14 +144,17 @@ def consensus():
 		'message': 'Our chain is authoritative',
 		'chain': tangle.nodes
 		}
-	return jsonify(response), 200
+	return render_template('pages/peers_resolve.html', json_data=response)
+	#return jsonify(response), 200
 
 @app.route('/peers', methods=['GET'])
-def list_peers():
+def get_peers():
 	response = {
 		'know_peers': list(tangle.peers)
 	}
-	return jsonify(response), 201
+	print(response)
+	return render_template('pages/peers.html', json_data=response)
+	#return jsonify(response), 201
 
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port=5001)
