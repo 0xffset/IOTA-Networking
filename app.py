@@ -4,7 +4,7 @@ from tangle import Tangle
 from cryptographics import encrypt_file_asymmetric, decrypt_file_asymmetric, get_hash_file
 from urllib.parse import urlparse
 import requests
-from flask import Flask, jsonify, request, render_template, flash
+from flask import Flask, jsonify, request, render_template, flash, send_file
 from flask_toastr import Toastr
 from forms import *
 import os
@@ -82,7 +82,9 @@ def decrypt_file():
                 return render_template('forms/decrypt_file.html', form=form)
             else:
                 path_file_decrypted = decrypt_file_asymmetric(file_path, file_extension)
-                return render_template('forms/decrypt_file.html', response=path_file_decrypted, form=form)
+                # flash("El archivo fue desencriptado satisfactoriamente!", "success")
+                return send_file(path_file_decrypted, as_attachment=True)
+                #return render_template('forms/decrypt_file.html', response=path_file_decrypted, form=form)
                         
     elif request.method == 'GET':
         form = DecryptFile(request.form)
