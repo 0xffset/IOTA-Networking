@@ -1,6 +1,3 @@
-#from Crypto.Cipher import AES
-#from Crypto.Util.Padding import pad, unpad
-#from Crypto.Random import get_random_bytes
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -12,12 +9,6 @@ import hashlib
 
 
 
-# Genera una clave secreta segura
-#def generate_secret_key():
-#	return secrets.token_bytes(32); # 32 bytes para AES-256
-
-#SECRET_KEY = generate_secret_key();
-
 
 # Genera un par de claves asimétricas
 private_key = rsa.generate_private_key(
@@ -25,7 +16,6 @@ private_key = rsa.generate_private_key(
     key_size=2048,
     backend=default_backend()
 )
-
 public_key = private_key.public_key()
 
 

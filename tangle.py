@@ -5,24 +5,19 @@ import hashlib
 import requests
 from urllib.parse import urlparse
 
-
-
-
 """
-nodes in the dag are represented in json as folows
-they can be transmitted across the network in this form and then can be
-initialized in this form
-        Node = {
-            'index': "int value",
+Los nodos en la red Tangle (DAG) son representados en el formato JSON descrito:
+ellos pueden ser transmitidos a través de la red
+ Node = {
+            'index': "índice",
             'timestamp': time(),
-            'data': "this is the transaction data that is being stored",
-            'proof': "proof of work",
-            'previous_hashs': "the hash of the previous 2 nodes that it is connected to",
-            'previous_nodes': 'index values',
-            'next_nodes': 'indexes of the nodes pointing to it',
-            'validity': the number of times the node has been proven
+            'data': "datos de la transacción donde los datos se guardarán",
+            'proof': "prueba de trabajo",
+            'previous_hashs': "Los hashes de los dos últimos nodos conectados",
+            'previous_nodes': 'índice de nodos previos',
+            'next_nodes': 'índices de los nodos que apuntan a él,
+            'validity': número de veces que el nodo ha sido probado
         }
-
 """
 
 class Tangle(object):
@@ -31,35 +26,44 @@ class Tangle(object):
 		super(Tangle, self).__init__()
 		self.nodes = []
 		self.peers = set()
-		# Create the genesis block
+		# Crea un bloque inicial
 		for i in range(properties.REQUIRED_PROOF):
 			self.nodes.append(self.create_node(None, [], len(self.nodes), 
 			validity = properties.REQUIRED_PROOF))
 
+		""" Se asegura que el nodo tenga el número correcto de ceros.
 
+		Returns:
+			bool: Si la cantida de ceros es correcta.  
+		"""
 	@staticmethod	
 	def valid_proof(last_proof, last_hash, proof):
-		# Ensures that the nodes has the correct number of zeros
 		guess = (str(last_proof) + str(last_hash) + str(proof)).encode()
 		guess_hash = hashlib.sha256(guess).hexdigest()
 		return guess_hash[:4] == "0000"
 
+		"""Se hace la prueba de trabajo
+		"""
 	def proof_of_work(self, last_proof, last_hash):
-		# Compute the proof of work
 		proof = 0
 		while self.valid_proof(last_proof, last_hash, proof) is False:
 			proof += 1
 		return proof
 		
+		""" Crear n nuevo hash para un nodo.
 
+		Returns:
+			sha256: hash sha-256 del nodo
+		"""
 	@staticmethod
-	# Compute the hash
 	def hash(node):
 		# Make a hash of the block
 		# We must make sure that the Dictionary is Ordered, or we will have inconsistent hashes
 		node_string = json.dumps(node, sort_keys=True).encode()
 		return hashlib.sha256(node_string).hexdigest()
 
+		""" Valida el nodo
+		"""
 	def validate_node(self, node):
 		if self.nodes[node['index']]['validity'] < properties.REQUIRED_PROOF:
 			last_proof = self.nodes[node['index']]['proof'] # This nodes proof
@@ -70,16 +74,19 @@ class Tangle(object):
 			self.nodes[node['index']]['validity'] =+ 1
 
 	
-	""" Create a new node """
-	def create_node(self, data, prev_nodes, new_index, validity=0): # These prev_nodes are the indexes in the dag the points to the
+		"""Crear un nuevo nodo
+		"""
+	def create_node(self, data, prev_nodes, new_index, validity=0): # Estos prev_nodes son los índices en el dag que apuntan al nodo.
 		prev_hashes = []
 		'''
-		many need to update every node that points to this when sendign trasaction
+		Se podría agregar una futura actualización para
+  		que actualize cada nodo para que actualize aquellos 
+    	nodos que apuntes a esta transacción.
 		'''
 
 		for i in prev_nodes:
 			prev_hashes.append(self.hash(self.nodes[i]))
-			#Now we tell the nodes that we are pointing to that we are pointing to them
+			#Ahora les decimos a los nodos a los que estamos apuntando que les estamos apuntando   			
 			self.nodes[i]['next_nodes'].append(new_index)
 
 		Node = {
@@ -94,9 +101,10 @@ class Tangle(object):
 		}
 		return Node
 
-	""" Send a transaction """
+		""" Enviar una transacción
+		"""
 	def send_transaction(self, data):
-		# Find 2 nodes in the network that are un proven
+		# Encontrar dos nodos en la red que esten provados. 
 		node_to_attach = []
 		nodes_indexes = []
 		new_index = len(self.nodes)
@@ -104,7 +112,7 @@ class Tangle(object):
 		worst_cases_scinario_indexes = []
 
 		'''
-		This function should be changed to search randomly
+		Se podría agregar una futura actualización donde esta función haga la búsqueda de forma aleatoria. 
 		'''
 
 		for i in range(len(self.nodes)-1, -1, -1):
@@ -119,68 +127,66 @@ class Tangle(object):
 			if len(node_to_attach) == properties.NUMBER_OF_VALIDATION_NODES:
 				break
 
-		# If there are not enough varified transaction the use verfied transactions
+		# Si no hay suficientes transacciones varificadas, use transacciones verificadas
 
 		while len(node_to_attach) < properties.NUMBER_OF_VALIDATION_NODES:
 			node_to_attach.append(worst_cases_scinario.pop())
 			nodes_indexes.append(worst_cases_scinario_indexes.pop())
 		
-		# Process nodes to attatch
-
+		# Nodo en proceso de adjuntar
 		for node in node_to_attach:
 			self.validate_node(node)
-
-		# Now that those nodes are proven
-		# we can now attach our node to the dag
+   
+		# Se adjunta el nodo a la red Tangle(DAG)
 		self.nodes.append(self.create_node(data, nodes_indexes, new_index))
 		return new_index
 
 
-	# this is the consesus algorithm
-
+		"""Este es el algoritmo de consenso
+		"""
 	def valid_tangle(self, tangle):
 		for node in tangle:
 			if node['index'] >= properties.NUMBER_OF_VALIDATION_NODES: # do not test genesis nodes
 				validity_of_node = node['validity']
-				# Make sure that the same number of nodes saying that they have
-				# validated him as his validity level
+				# Se asegura que el mismo número de nodos que posee. 
+				# Se valida el nodo y su nivel de validad. 
 				next_nodes = node['next_nodes']
-				print(next_nodes)
 				if validity_of_node < len(next_nodes):
 					return False
-				# Make sure these nodes are pointing to him
+				# Se asegura que esos nodos estan apuntado al él.
 				for n_node in next_nodes:
-					print(tangle[n_node])
 					if node['index'] not in tangle[n_node]['previous_nodes']:
 						return False
 		return True
 
-
+		"""Se registra un peer
+		"""
 	def register_peer(self, address):
 		parsed_url = urlparse(address)
 		self.peers.add(parsed_url.netloc)
 
+		""" Algoritmo que verifica si este algún conflicto con los nodos
+		"""
 	def resolve_conflicts(self):
 		neighbours = self.peers
 		new_tangle = None
 
-		# We are only looking chaing longer than ours
+		# Solo buscamos una cadena que larga que la que se está procesando. 
 		max_length = len(self.nodes)
 
-		# Grab and verify the chains from all the peers in our network
+		# Obtiene y verifica las cadenas de todos los pares de nuestra red.
 		for peer in neighbours:
-			print(peer)
 			response = requests.get("http://"+ str(peer) +"/tangle")
 			if response.status_code == 200:
 				length = response.json()['length']
 				tangle = response.json()['tangle']
 
-				# Check if length is longer and the chain is valid
+				# Compruebe si la longitud es más larga y la cadena es válida
 				if length > max_length and self.valid_tangle(tangle):
 					max_length = length
 					new_tangle = tangle
 
-		# Replace our chan if we discovered a new, valid chain longer than ours
+		# Reemplazar nuestro chan si descubrimos una cadena nueva y válida más larga que la nuestra
 		if new_tangle:
 			self.nodes = new_tangle
 			return True

@@ -18,7 +18,7 @@ toastr.init_app(app)
 
 node_identifier = str(uuid4()).replace('-','')
 
-# Initialize the Blockchain
+# Se initializa el Blockchain
 tangle = Tangle()
 
 @app.route('/')
@@ -53,35 +53,34 @@ def transaction():
 
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
-	# update tangle
+	# Actualiza tangle
 	tangle.resolve_conflicts
-	# begin transaction
+	# Inicial la  transacción
 	values = {
 		'sender': request.form['sender'],
 		'recipient': request.form['recipient'],
 		'file': request.files['file']
 	}
-	print(values)
 
-	# Check that the required fields are in the POST'ed data
+	# Se verifican que los campos requeridos esten en la data de POST
 	required = ['sender', 'recipient', 'file']
 	if  all(k in values.keys() for k in required) and not all(values.values()):
-		return 'Missing values', 400
+		return 'Faltan campos', 400
 
-	# Encrypt the file sender
+	# Encripta el archivo enviado
 	file = request.files['file'].read()
-	# Get the SHA-256 file signature 
+	# Obtiene el SHA-256 para la firma del archivo que se quiere agregar. (Esto podría ser de utilidad si en la red se requiere verificar un archivo en ella, en ese sentido, solo se verificaria su firma).
 	encrypted_file_path = encrypt_file_asymmetric(file)
 	sha256_signature = get_hash_file(encrypted_file_path)
 
 	values['signature'] = sha256_signature
 	values['file'] = encrypted_file_path
 
-	# Create a new Transaction
+	# Crea una nueva transacción
 	index = tangle.send_transaction(values)
 
-	response = {'message': 'Transaction will added to Block' + str(index)}
-	# tell peers to update tangle
+	response = {'message': 'Transacción agregada al bloque: ' + str(index)}
+	# Le dice a los nodos que se actualicen. 
 	for peer in tangle.peers:
 		requests.get(f"http://{peer}/peers/resolve")
 	flash("La nueva transacción fue agregada satisfactoriamente al a red tangle.", 'success')
