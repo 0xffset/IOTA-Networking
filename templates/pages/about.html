@@ -3,12 +3,22 @@
 {% block content %}
 
 <div class="page-header">
-  <h1>About Page</h1>
+  <h1>Tangle</h1>
 </div>
-<p class="lead">This is just a placeholder page which should be replaced with real content.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut tellus ligula, imperdiet id lobortis sit amet, scelerisque non sapien. Duis quis dui quis mauris dapibus fringilla. Pellentesque nec tellus ac diam volutpat malesuada.</p>
-<p>In quam arcu, interdum vel arcu viverra, vulputate convallis massa. Sed hendrerit velit a arcu euismod, sit amet consequat lacus imperdiet. Nullam quis dui sapien. Vestibulum placerat, justo non fringilla laoreet, dui ipsum posuere nisi, nec vestibulum eros leo ut sapien.</p>
-<p>Vivamus eu felis sed magna scelerisque semper in et libero. Curabitur sed convallis odio, quis venenatis sapien. In convallis a velit ac commodo. Donec sapien ligula, vestibulum ut nisi accumsan, facilisis pretium est. Fusce varius semper orci, et egestas nulla cursus a. Phasellus aliquam, mi ac adipiscing lobortis, ipsum augue aliquam ligula, quis fermentum mi augue vel ligula.</p>
-<p>Integer elementum malesuada dolor in aliquet.</p>
-
+<p>
+  En el contexto de la red Tangle, que es la tecnología subyacente a IOTA (una criptomoneda diseñada para la Internet de las cosas), los "peers" se refieren a los nodos individuales que participan en la red. Cada nodo en la red Tangle es un "par" (peer) que puede enviar, recibir y validar transacciones. A diferencia de algunas otras criptomonedas basadas en cadenas de bloques, en la red Tangle, no hay bloques ni mineros.
+</p>
+<p>En lugar de una cadena de bloques, la red Tangle utiliza una estructura gráfica acíclica dirigida (DAG, por sus siglas en inglés) en la que cada transacción se conecta directamente con dos transacciones anteriores. Cuando un usuario quiere enviar una transacción, primero valida dos transacciones anteriores y agrega la suya al Tangle. Este enfoque descentralizado y sin bloques permite un mayor paralelismo y escalabilidad.</p>
+<p>
+  Los peers en la red Tangle colaboran para validar y confirmar transacciones, y cada nodo puede estar conectado directamente con otros nodos. La red se beneficia de la participación de los peers para mantener la seguridad y la integridad de las transacciones. En resumen, en la red Tangle, los peers son los nodos que participan en la validación y propagación de transacciones.
+</p>
+<p>
+  En el contexto de una red Tangle, el algoritmo de consenso se utiliza para alcanzar un acuerdo sobre el estado actual de la red. La Tangle es una estructura de datos dirigida acíclica (DAG) que se utiliza como base para la criptomoneda IOTA. En lugar de utilizar un enfoque de cadena de bloques como Bitcoin, que utiliza un algoritmo de consenso de prueba de trabajo (PoW) para validar transacciones, IOTA utiliza un enfoque diferente basado en el Tangle.
+</p>
+<p>
+  El Tangle es una red de transacciones enlazadas entre sí, donde cada transacción debe aprobar dos transacciones anteriores para ser válida. En lugar de depender de mineros para validar transacciones, los usuarios participan en el proceso de consenso al confirmar transacciones anteriores cuando realizan una nueva. Este proceso de confirmación se conoce como "realizar un trabajo" y puede considerarse como una forma de prueba de trabajo.
+</p>
+<p>
+  El algoritmo de consenso en el Tangle se basa en la idea de que, a medida que más usuarios realizan transacciones y confirman otras transacciones, la red se vuelve más segura y la probabilidad de que una transacción sea válida aumenta. Sin embargo, el Tangle enfrenta desafíos como el riesgo de divisiones temporales y la necesidad de establecer ciertas reglas para evitar conflictos.
+</p>
 {% endblock %}
