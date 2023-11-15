@@ -10,6 +10,11 @@ class Peers(Form):
         'Peers', validators=[DataRequired(), Length(min=6, max=256)]
     )
 
+class DecryptFile(Form):
+    signature = StringField(
+        'Signature', validators=[DataRequired()]
+    )
+
 class Transaction(Form):
     sender = StringField(
         'Sender', validators=[DataRequired(), Length(min=6, max=256)]

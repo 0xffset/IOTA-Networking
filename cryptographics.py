@@ -13,7 +13,7 @@ import hashlib
 # Genera un par de claves asimétricas
 private_key = rsa.generate_private_key(
     public_exponent=65537,
-    key_size=2048,
+    key_size=4096,
     backend=default_backend()
 )
 public_key = private_key.public_key()
@@ -53,7 +53,10 @@ data -- Recibe el los bytes a desencriptar.
 Return: Any
 """
 
-def decrypt_file_asymmetric(data):
+def decrypt_file_asymmetric(file_path, file_extension):
+    # Buscarmos el archivo por su signature
+    ifile=open(file_path, 'rb');
+    data  = ifile.read()
     plain_text = private_key.decrypt(
         data,
         padding.OAEP(
@@ -62,9 +65,10 @@ def decrypt_file_asymmetric(data):
             label=None
         )
     )
-    decrypted_filename = f'{DIRECTORY}/decrypted_{secrets.token_hex(8)}.bin'
+    decrypted_filename = f'{DIRECTORY}/decrypted_{secrets.token_hex(8)}{file_extension}'
     with open(decrypted_filename, 'wb') as decrypted_file:
         decrypted_file.write(plain_text)
+    return decrypted_filename
 
 
 """Funcion que recibe la el archivo y lo almacena devuelve una hash sha-256 como la firma de este archivo.

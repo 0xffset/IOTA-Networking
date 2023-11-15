@@ -68,7 +68,8 @@ class Tangle(object):
 		if self.nodes[node['index']]['validity'] < properties.REQUIRED_PROOF:
 			last_proof = self.nodes[node['index']]['proof'] # This nodes proof
 			last_hash = ""
-			for prev_hash in self.nodes[nodes['index']]['previous_hash']:
+			print(node['index'])
+			for prev_hash in self.nodes[node['index']]['previous_hashs']:
 				last_hash += prev_hash # the hashes of the nodes his node connects
 			self.nodes[node['index']]['proof'] = self.proof_of_work(last_proof, last_hash)
 			self.nodes[node['index']]['validity'] =+ 1

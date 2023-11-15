@@ -64,6 +64,7 @@
               <a class="dropdown-toggle" data-toggle="dropdown">Acciones <b class="caret"></b></a>
               <ul class="dropdown-menu">
                 <li {% if request.endpoint == 'transaction' %} class="active" {% endif %}><a href="{{ url_for('transaction') }}">Nueva Transacción</a></li>
+                <li {% if request.endpoint == 'decrypt_file' %} class="active" {% endif %}><a href="{{ url_for('decrypt_file') }}">Descargar Archivo Encriptado</a></li>
                 <li {% if request.endpoint == 'full_chain' %} class="active" {% endif %}><a href="{{ url_for('full_chain') }}">Ver Tangle</a></li>
                 <li {% if request.endpoint == 'get_peers' %} class="active" {% endif %}><a href="{{ url_for('get_peers') }}">Ver Peers</a></li>
                 <li {% if request.endpoint == 'add_peers' %} class="active" {% endif %}><a href="{{ url_for('add_peers') }}">Agregar Peers</a></li>

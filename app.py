@@ -7,6 +7,7 @@ import requests
 from flask import Flask, jsonify, request, render_template, flash
 from flask_toastr import Toastr
 from forms import *
+import os
 
 app = Flask(__name__)
 app.secret_key = '9omdDUxxFM'
@@ -51,6 +52,48 @@ def transaction():
 	return render_template('forms/transaction.html', form=form)
 
 
+
+@app.route('/transaction/decrypt', methods=['GET', 'POST'])
+def decrypt_file():
+    form = DecryptFile(request.form)
+    if request.method == 'POST':
+       # Se verifica que el signature no este vacío
+        signature = request.form['signature']
+        if signature == '':
+            flash("Se debe ingresar un signature válido", "error")
+            return render_template('forms/decrypt_file.html', form=form)
+        else:
+            response = {
+			'tangle': tangle.nodes,
+			'length': len(tangle.nodes)
+			}
+            file_extension = ''
+            file_path = ''
+            for nodo in tangle.nodes:
+                if (nodo['data'] is not None and nodo['data']['signature'] == signature):
+                    file_extension = nodo['data']['extension']
+                    file_path = nodo['data']['file']
+               # if 'data' in nodo and 'signature' in nodo.data and nodo.data['signature'] == signature:
+               #     file_extension = nodo['data']['extension']
+               #     file_path = nodo['data']['file']
+               #     break 
+            if (file_extension == '' or file_path == ''):
+                flash("Se debe ingresar un signature válido", "error")
+                return render_template('forms/decrypt_file.html', form=form)
+            else:
+                path_file_decrypted = decrypt_file_asymmetric(file_path, file_extension)
+                return render_template('forms/decrypt_file.html', response=path_file_decrypted, form=form)
+                        
+    elif request.method == 'GET':
+        form = DecryptFile(request.form)
+        return render_template('forms/decrypt_file.html', form=form)
+       
+    else:
+        flash("Error al desencriptar el archivo", "error")
+        return render_template('forms/decrypt_file.html', form=form)
+            
+        
+
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
 	# Actualiza tangle
@@ -69,8 +112,18 @@ def new_transaction():
 
 	# Encripta el archivo enviado
 	file = request.files['file'].read()
-	# Obtiene el SHA-256 para la firma del archivo que se quiere agregar. (Esto podría ser de utilidad si en la red se requiere verificar un archivo en ella, en ese sentido, solo se verificaria su firma).
-	encrypted_file_path = encrypt_file_asymmetric(file)
+	# Obtener la extensión del archivo enviado
+	file_extension = "."+request.files['file'].filename.split('.')[1]
+	values['extension'] = file_extension
+ 	# Obtiene el SHA-256 para la firma del archivo que se quiere agregar. (Esto podría ser de utilidad si en la red se requiere verificar un archivo en ella, en ese sentido, solo se verificaria su firma).
+	encrypted_file_path = ""
+	try:
+		encrypted_file_path = encrypt_file_asymmetric(file)
+		print(encrypted_file_path)
+	except Exception as e:
+		flash(f"Error a encriptar el archivo. Es posible que el archivo sea muy pesado.", 'error')
+		return render_template('pages/index.html')
+
 	sha256_signature = get_hash_file(encrypted_file_path)
 
 	values['signature'] = sha256_signature
@@ -83,7 +136,7 @@ def new_transaction():
 	# Le dice a los nodos que se actualicen. 
 	for peer in tangle.peers:
 		requests.get(f"http://{peer}/peers/resolve")
-	flash("La nueva transacción fue agregada satisfactoriamente al a red tangle.", 'success')
+	flash(f"La nueva transacción fue agregada satisfactoriamente al a red tangle. Transacción agregada al bloque: {index}", 'success')
 	return render_template('pages/index.html')
 
 @app.route('/tangle', methods=['GET'])
