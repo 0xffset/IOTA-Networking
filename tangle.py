@@ -50,15 +50,15 @@ class Tangle(object):
 			proof += 1
 		return proof
 		
-		""" Crear n nuevo hash para un nodo.
+		""" Crear n nuevo hash para un nodo 
 
 		Returns:
 			sha256: hash sha-256 del nodo
 		"""
 	@staticmethod
 	def hash(node):
-		# Make a hash of the block
-		# We must make sure that the Dictionary is Ordered, or we will have inconsistent hashes
+		# Hace un hash para el block
+		# Nos aseguramos que el dictionario este ordenado de lo contrario tendremos hashes inconsistentes
 		node_string = json.dumps(node, sort_keys=True).encode()
 		return hashlib.sha256(node_string).hexdigest()
 
