@@ -137,7 +137,15 @@ def full_chain():
 	print(response)
 	return render_template('pages/tangle.html', json_data=response)
 	#return jsonify(response), 200
-
+ 
+@app.route('/tangle_content', methods=['GET'])
+def tangle_content():
+    response = {
+		'tangle': tangle.nodes,
+		'length': len(tangle.nodes)
+	}
+    return jsonify(response)
+ 
 @app.route('/peers/add', methods=['POST', 'GET'])
 def add_peers():
     if request.method == 'POST':

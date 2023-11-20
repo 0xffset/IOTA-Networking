@@ -177,7 +177,8 @@ class Tangle(object):
 
 		# Obtiene y verifica las cadenas de todos los pares de nuestra red.
 		for peer in neighbours:
-			response = requests.get("http://"+ str(peer) +"/tangle")
+			response = requests.get("http://"+ str(peer) +"/tangle_content")
+			print(response.json())
 			if response.status_code == 200:
 				length = response.json()['length']
 				tangle = response.json()['tangle']
