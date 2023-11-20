@@ -147,7 +147,7 @@ class Tangle(object):
 		"""
 	def valid_tangle(self, tangle):
 		for node in tangle:
-			if node['index'] >= properties.NUMBER_OF_VALIDATION_NODES: # do not test genesis nodes
+			if node['index'] >= properties.NUMBER_OF_VALIDATION_NODES: 
 				validity_of_node = node['validity']
 				# Se asegura que el mismo número de nodos que posee. 
 				# Se valida el nodo y su nivel de validad. 

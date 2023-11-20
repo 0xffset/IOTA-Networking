@@ -25,30 +25,3 @@ class Transaction(Form):
     file = FileField(
         'File', validators=[DataRequired()]
     )
-
-class RegisterForm(Form):
-    name = StringField(
-        'Username', validators=[DataRequired(), Length(min=6, max=25)]
-    )
-    email = StringField(
-        'Email', validators=[DataRequired(), Length(min=6, max=40)]
-    )
-    password = PasswordField(
-        'Password', validators=[DataRequired(), Length(min=6, max=40)]
-    )
-    confirm = PasswordField(
-        'Repeat Password',
-        [DataRequired(),
-        EqualTo('password', message='Passwords must match')]
-    )
-
-
-class LoginForm(Form):
-    name = StringField('Username', [DataRequired()])
-    password = PasswordField('Password', [DataRequired()])
-
-
-class ForgotForm(Form):
-    email = StringField(
-        'Email', validators=[DataRequired(), Length(min=6, max=40)]
-    )

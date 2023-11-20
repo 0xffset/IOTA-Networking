@@ -22,6 +22,10 @@ node_identifier = str(uuid4()).replace('-','')
 # Se initializa el Blockchain
 tangle = Tangle()
 
+@app.errorhandler(404)
+def not_found(e):
+    return render_template('errors/404.html')
+
 @app.route('/')
 def index():
 	return render_template('pages/index.html')
@@ -29,29 +33,11 @@ def index():
 @app.route('/about')
 def about():
 	return render_template('pages/about.html')
-	
-@app.route('/register')
-def register():
-	form = RegisterForm(request.form)
-	return render_template('forms/register.html', form=form)
-
-@app.route('/login')
-def login():
-    form = LoginForm(request.form)
-    return render_template('forms/login.html', form=form)
-
-@app.route('/forgot')
-def forgot():
-    form = ForgotForm(request.form)
-    return render_template('forms/forgot.html', form=form)
-
 
 @app.route('/transactions/new', methods=['GET'])
 def transaction():
 	form = Transaction(request.form)
 	return render_template('forms/transaction.html', form=form)
-
-
 
 @app.route('/transaction/decrypt', methods=['GET', 'POST'])
 def decrypt_file():
@@ -126,6 +112,7 @@ def new_transaction():
 		flash(f"Error a encriptar el archivo. Es posible que el archivo sea muy pesado.", 'error')
 		return render_template('pages/index.html')
 
+	# Obtener signature del archivo para su identidad en la red Tangle. 
 	sha256_signature = get_hash_file(encrypted_file_path)
 
 	values['signature'] = sha256_signature
